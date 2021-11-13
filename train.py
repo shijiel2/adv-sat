@@ -9,9 +9,11 @@ from torch.utils import data
 import torchvision
 import torchvision.transforms as transforms
 from torchvision import models
+
 # from model.architectures.resnet import construct_resnet
 # from model.architectures.wide_resnet import wide_resnet
 # from model.architectures.normalized import NormalizedModel
+
 from model.mymodels.resnet import ResNet18
 from model.mymodels.wideresnet import WideResNet
 from utils.utils import load_model, save_model, test, train
