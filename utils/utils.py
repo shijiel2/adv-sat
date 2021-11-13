@@ -15,9 +15,9 @@ import argparse
 import time
 import numpy as np
 import torch.nn as nn
-from trattack.attack_methods import select_index, tr_attack_adaptive
+# from trattack.attack_methods import select_index, tr_attack_adaptive
 from advertorch.attacks import CarliniWagnerL2Attack, PGDAttack
-from fast_adv.attacks import DDN
+# from fast_adv.attacks import DDN
 from torch.autograd import Variable
 
 import torch.nn.functional as F

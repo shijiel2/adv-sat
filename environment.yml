@@ -1,4 +1,4 @@
-name: adv_classif_venv
+name: adv_sat
 channels:
   - pytorch
   - conda-forge

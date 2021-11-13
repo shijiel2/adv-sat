@@ -9,9 +9,11 @@ from torch.utils import data
 import torchvision
 import torchvision.transforms as transforms
 from torchvision import models
-from model.architectures.resnet import construct_resnet
-from model.architectures.wide_resnet import wide_resnet
-from model.architectures.normalized import NormalizedModel
+# from model.architectures.resnet import construct_resnet
+# from model.architectures.wide_resnet import wide_resnet
+# from model.architectures.normalized import NormalizedModel
+from model.mymodels.resnet import ResNet18
+from model.mymodels.wideresnet import WideResNet
 from utils.utils import load_model, save_model, test, train
 from utils.losses import AdversarialDomainAdaptation, SinkhornDistance, AdversarialSinkhornDivergence
 import torch.optim as optim
@@ -53,6 +55,7 @@ args = parser.parse_args()
 if args.gpu is not None:
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     torch.cuda.set_device(device)
+    print('Using gpu...')
 else:
     device = torch.device("cpu")
     
@@ -100,11 +103,14 @@ val_loader = data.DataLoader(val_set, batch_size=100, shuffle=True, num_workers=
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=1000, shuffle=False, num_workers=args.workers, pin_memory=True)
 
 if args.arch == 'wide':
-    net = wide_resnet(num_classes=num_classes, depth=28, widen_factor=10, dropRate=0.3).to(device)
+    # net = wide_resnet(num_classes=num_classes, depth=28, widen_factor=10, dropRate=0.3).to(device)
+    print('Using Wide ResNet...')
+    net = WideResNet(depth=28, widen_factor=10, num_classes=num_classes).to(device)
 else:
-    net = construct_resnet(depth=args.depth, num_classes=num_classes).to(device)
+    # net = construct_resnet(depth=args.depth, num_classes=num_classes).to(device)
+    net = ResNet18(num_classes=num_classes).to(device)
 
-net = NormalizedModel(model=net, mean=mean, std=std).to(device)
+# net = NormalizedModel(model=net, mean=mean, std=std).to(device)
 
 criterion_class = torch.nn.CrossEntropyLoss().to(device)
 if args.da:

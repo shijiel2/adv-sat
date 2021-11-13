@@ -12,10 +12,12 @@ import torchvision.transforms as transforms
 from utils.utils import load_model, adv_test, test
 import numpy as np
 from advertorch.attacks import CarliniWagnerL2Attack, PGDAttack, MomentumIterativeAttack, GradientSignAttack, FastFeatureAttack
-from fast_adv.attacks import DDN, CarliniWagnerL2
-from model.architectures.resnet import construct_resnet
-from model.architectures.wide_resnet import wide_resnet
-from model.architectures.normalized import NormalizedModel
+# from fast_adv.attacks import DDN, CarliniWagnerL2
+# from model.architectures.resnet import construct_resnet
+# from model.architectures.wide_resnet import wide_resnet
+from model.mymodels.resnet import ResNet18
+from model.mymodels.wideresnet import WideResNet
+# from model.architectures.normalized import NormalizedModel
 from model.architectures.resnet_model_pcl import construct_resnet_pcl
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10/CIFAR100 Adversarial Test')
@@ -65,11 +67,13 @@ test_loader = torch.utils.data.DataLoader(test_set, batch_size=256, shuffle=Fals
 
 # instantiate the model
 if args.arch == 'wide':
-    net = wide_resnet(num_classes=num_classes, depth=28, widen_factor=10, dropRate=0.3).to(device)
+    # net = wide_resnet(num_classes=num_classes, depth=28, widen_factor=10, dropRate=0.3).to(device)
+    net = WideResNet(depth=28, widen_factor=10, num_classes=num_classes).to(device)
 elif args.arch == 'pcl':
     net = construct_resnet_pcl(num_classes=num_classes, depth=110)
 else:
-    net = construct_resnet(depth=args.depth, num_classes=num_classes).to(device)
+    # net = construct_resnet(depth=args.depth, num_classes=num_classes).to(device)
+    net = ResNet18(num_classes=num_classes).to(device)
 
 filename = args.filename
 # print(best_acc, epoch)
@@ -78,7 +82,7 @@ pcl = False
 if filename[-1] == 'h':
     mean = torch.tensor([0.491, 0.482, 0.447]).view(1, 3, 1, 1).to(device)
     std = torch.tensor([0.247, 0.243, 0.262]).view(1, 3, 1, 1).to(device)
-    net = NormalizedModel(model=net, mean=mean, std=std).to(device)
+    # net = NormalizedModel(model=net, mean=mean, std=std).to(device)
     net.load_state_dict(torch.load(os.path.join("model", "checkpoints", filename)))
 elif args.arch == 'pcl':
     net = torch.nn.DataParallel(net).cuda()
@@ -86,7 +90,7 @@ elif args.arch == 'pcl':
     checkpoint = torch.load(os.path.join("model", "checkpoints", filename))
     net.load_state_dict(checkpoint['state_dict'])
 else:
-    net = NormalizedModel(model=net, mean=mean, std=std).to(device)
+    # net = NormalizedModel(model=net, mean=mean, std=std).to(device)
     net, optim, best_acc, epoch = load_model(net, None, os.path.join("model", "checkpoints"), filename, device)
 
 net = net.eval()
@@ -111,7 +115,7 @@ epsilon = args.eps
 epsilon = epsilon/255.
 ddn = False
 if args.attack == 'PGD':
-    adversary = PGDAttack(lambda x: wrapper(x, pcl=pcl), eps=epsilon, eps_iter=epsilon/4, nb_iter=10, ord=norm, rand_init=True)
+    adversary = PGDAttack(lambda x: wrapper(x, pcl=pcl), eps=epsilon, eps_iter=epsilon/4, nb_iter=20, ord=norm, rand_init=True)
 elif args.attack == 'MIFGSM':
     adversary = MomentumIterativeAttack(lambda x: wrapper(normalize(x), pcl=pcl), eps=epsilon, eps_iter=epsilon/10, ord=norm, nb_iter=10)
 elif args.attack == 'FGSM':
